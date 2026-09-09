@@ -355,8 +355,9 @@ export default function App() {
     const formData = new FormData()
     formData.append('file', blob, 'enrolled.webm')
 
+    const endpoint = window.location.origin.includes('5173') ? '/api/register_speaker' : 'http://127.0.0.1:8000/api/register_speaker'
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/register_speaker', {
+      const res = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       })

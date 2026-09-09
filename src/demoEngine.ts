@@ -96,7 +96,7 @@ export type AnalysisResult = DemoResult | LiveResult
  */
 export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
   const t0 = performance.now()
-  const API_URL = 'http://127.0.0.1:8000/api/analyze'
+  const API_URL = window.location.origin.includes('5173') ? '/api/analyze' : 'http://127.0.0.1:8000/api/analyze'
 
   const formData = new FormData()
   const filename = blob.type.includes('webm') ? 'audio.webm' : blob.type.includes('wav') ? 'audio.wav' : 'audio.mp3'
