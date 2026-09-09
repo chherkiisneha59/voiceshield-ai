@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   runDemoAnalysis,
-  runGenericAnalysis,
+  analyzeLiveAudio,
   type AnalysisResult,
+  type LiveResult,
+  type DemoResult,
   type DemoScenario,
   type Status,
   type Decision,
@@ -138,6 +140,148 @@ function RiskBar({ score }: { score: number }) {
   )
 }
 
+/* ─── Mode Badge (LIVE AUDIO vs DEMO SIMULATION) ─── */
+function ModeBadge({ mode }: { mode: 'live' | 'demo' }) {
+  if (mode === 'live') {
+    return (
+      <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30">
+        <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-dot" />
+        <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest">Live Audio</span>
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30">
+      <span className="w-2 h-2 rounded-full bg-amber-400 pulse-dot" />
+      <span className="text-xs font-bold text-amber-300 uppercase tracking-widest">Demo Simulation</span>
+    </span>
+  )
+}
+
+/* ─── Live Result Display ─── */
+function LiveResultCard({ result }: { result: LiveResult }) {
+  return (
+    <section className="fade-in-up">
+      <div className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-dot" />
+                Prototype Audio Analysis
+              </h2>
+              <ModeBadge mode="live" />
+            </div>
+            <p className="text-lg font-bold text-white">{result.label}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Processed in {result.analysisTime} · Duration: {result.duration}s
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={result.status} />
+            <DecisionBadge decision={result.decision} />
+          </div>
+        </div>
+
+        {/* Metrics grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div className="bg-vs-darker/40 rounded-xl p-4 border border-vs-border/30 text-center">
+            <p className="text-2xl font-bold text-white">{result.duration}s</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Duration</p>
+          </div>
+          <div className="bg-vs-darker/40 rounded-xl p-4 border border-vs-border/30 text-center">
+            <p className="text-2xl font-bold text-white">{result.voiceActivity}%</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Voice Activity</p>
+          </div>
+          <div className="bg-vs-darker/40 rounded-xl p-4 border border-vs-border/30 text-center">
+            <p className={`text-2xl font-bold ${
+              result.audioQuality === 'Excellent' ? 'text-emerald-400' :
+              result.audioQuality === 'Good' ? 'text-cyan-400' :
+              result.audioQuality === 'Fair' ? 'text-amber-400' : 'text-red-400'
+            }`}>{result.audioQuality}</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Audio Quality</p>
+          </div>
+          <div className="bg-vs-darker/40 rounded-xl p-4 border border-vs-border/30 text-center">
+            <p className="text-2xl font-bold text-white">{result.peakAmplitude}</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Peak Amplitude</p>
+          </div>
+        </div>
+
+        {/* Risk bar */}
+        <div className="bg-vs-darker/40 rounded-xl p-5 border border-vs-border/30">
+          <RiskBar score={result.riskScore} />
+        </div>
+      </div>
+
+      {/* Live disclaimer */}
+      <div className="bg-cyan-500/5 border border-cyan-500/15 rounded-xl p-4 text-center">
+        <p className="text-[11px] text-cyan-400/80 font-medium">
+          🎙 PROTOTYPE AUDIO ANALYSIS — Metrics are computed from real audio via Web Audio API.
+          Risk score is a signal-quality heuristic, not a spoof/deepfake detector. No ML model is running.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* ─── Demo Result Display ─── */
+function DemoResultCard({ result }: { result: DemoResult }) {
+  return (
+    <section className="fade-in-up">
+      <div className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400 pulse-dot" />
+                Demo Analysis Result
+              </h2>
+              <ModeBadge mode="demo" />
+            </div>
+            <p className="text-lg font-bold text-white">{result.label}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Processed in {result.analysisTime} · Confidence: {result.confidence}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={result.status} />
+            <DecisionBadge decision={result.decision} />
+          </div>
+        </div>
+
+        {/* Gauges */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-vs-darker/40 rounded-xl p-5 flex justify-center border border-vs-border/30">
+            <CircularGauge
+              value={result.speakerMatch}
+              label="Speaker Match"
+              color="#10b981"
+            />
+          </div>
+          <div className="bg-vs-darker/40 rounded-xl p-5 flex justify-center border border-vs-border/30">
+            <CircularGauge
+              value={result.spoofProbability}
+              label="Spoof Probability"
+              color={result.spoofProbability > 70 ? '#ef4444' : result.spoofProbability > 40 ? '#f59e0b' : '#10b981'}
+            />
+          </div>
+          <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 gap-4">
+            <RiskBar score={result.riskScore} />
+          </div>
+        </div>
+      </div>
+
+      {/* Demo disclaimer */}
+      <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-center">
+        <p className="text-[11px] text-amber-400/80 font-medium">
+          ⚠ DEMO SIMULATION — These values are hard-coded fixtures for demonstration purposes only. They do not represent real ML predictions or actual audio analysis.
+        </p>
+      </div>
+    </section>
+  )
+}
+
 /* ─══════════════════════════════════════════════════════════─
    MAIN APP
    ─══════════════════════════════════════════════════════════─ */
@@ -145,10 +289,13 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false)
   const [hasAudio, setHasAudio] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
+  const [analyzingMode, setAnalyzingMode] = useState<'live' | 'demo' | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [activeDemo, setActiveDemo] = useState<DemoScenario | null>(null)
   const [recordingTime, setRecordingTime] = useState(0)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const audioBlobRef = useRef<Blob | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -157,6 +304,17 @@ export default function App() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const recorder = new MediaRecorder(stream)
+      audioChunksRef.current = []
+      audioBlobRef.current = null
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+      }
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        audioBlobRef.current = blob
+      }
+
       mediaRecorderRef.current = recorder
       recorder.start()
       setIsRecording(true)
@@ -182,29 +340,43 @@ export default function App() {
   }, [])
   const onFileSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
+      audioBlobRef.current = e.target.files[0]
       setHasAudio(true)
       setResult(null)
     }
   }, [])
 
-  /* ── Analyze (generic) ── */
+  /* ── Analyze LIVE audio ── */
   const analyzeVoice = useCallback(async () => {
+    const blob = audioBlobRef.current
+    if (!blob) {
+      alert('No audio captured. Please record or upload audio first.')
+      return
+    }
     setAnalyzing(true)
+    setAnalyzingMode('live')
     setResult(null)
-    const res = await runGenericAnalysis()
-    setResult(res)
+    try {
+      const res = await analyzeLiveAudio(blob)
+      setResult(res)
+    } catch (err) {
+      console.error('Live analysis error:', err)
+      alert('Could not analyze audio. The recording may be too short or in an unsupported format.')
+    }
     setAnalyzing(false)
+    setAnalyzingMode(null)
   }, [])
 
   /* ── Demo scenario buttons ── */
   const runDemo = useCallback(async (scenario: DemoScenario) => {
     setActiveDemo(scenario)
     setAnalyzing(true)
+    setAnalyzingMode('demo')
     setResult(null)
-    setHasAudio(true)
     const res = await runDemoAnalysis(scenario)
     setResult(res)
     setAnalyzing(false)
+    setAnalyzingMode(null)
     setActiveDemo(null)
   }, [])
 
@@ -243,20 +415,26 @@ export default function App() {
           </p>
           <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 pulse-dot" />
-            <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-widest">Prototype Demo Engine</span>
+            <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-widest">Hackathon Prototype</span>
           </div>
         </header>
 
-        {/* ── Voice Input Card ── */}
+        {/* ── Voice Input Card (LIVE MODE) ── */}
         <section className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
-          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-5 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-vs-accent pulse-dot" />
-            Voice Input
-          </h2>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-dot" />
+              Live Voice Input
+            </h2>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-widest">Analyzes Real Audio</span>
+            </span>
+          </div>
 
           {/* Waveform */}
           <div className="bg-vs-darker/60 rounded-xl p-4 mb-5 border border-vs-border/50">
-            <Waveform active={isRecording || analyzing} intensity={analyzing ? 0.6 : 1} />
+            <Waveform active={isRecording || (analyzing && analyzingMode === 'live')} intensity={analyzing ? 0.6 : 1} />
             {isRecording && (
               <div className="text-center mt-2">
                 <span className="text-xs font-mono text-red-400 flex items-center justify-center gap-2">
@@ -265,9 +443,9 @@ export default function App() {
                 </span>
               </div>
             )}
-            {analyzing && (
+            {analyzing && analyzingMode === 'live' && (
               <div className="text-center mt-2">
-                <span className="text-xs font-mono text-vs-accent-light">Analyzing audio signal...</span>
+                <span className="text-xs font-mono text-cyan-400">Analyzing real audio signal...</span>
               </div>
             )}
           </div>
@@ -315,7 +493,7 @@ export default function App() {
               id="btn-analyze"
               onClick={analyzeVoice}
               disabled={!hasAudio || analyzing || isRecording}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-vs-accent to-vs-glow-purple text-white shadow-lg shadow-vs-accent/25 hover:shadow-vs-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-cyan-500 to-vs-glow-cyan text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
@@ -327,19 +505,25 @@ export default function App() {
           {hasAudio && !analyzing && !result && (
             <p className="mt-3 text-xs text-emerald-400/70 flex items-center gap-1">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
-              Audio ready for analysis
+              Audio ready — click Analyze Voice for real audio analysis
             </p>
           )}
         </section>
 
         {/* ── Demo Scenarios ── */}
         <section className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
-          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 pulse-dot" />
-            Demo Scenarios
-          </h2>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 pulse-dot" />
+              Demo Scenarios
+            </h2>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-widest">Simulated Data</span>
+            </span>
+          </div>
           <p className="text-[11px] text-slate-500 mb-4">
-            ⚠ Prototype Demo Engine — results are deterministic fixtures, not ML predictions
+            ⚠ These buttons show deterministic demo fixtures — no real audio is analyzed
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -354,7 +538,7 @@ export default function App() {
                 <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">✓</div>
                 <span className="font-bold text-emerald-300 text-sm">Authentic Voice</span>
               </div>
-              <p className="text-[11px] text-slate-500">Genuine human speaker — low risk</p>
+              <p className="text-[11px] text-slate-500">4% spoof · SAFE · ALLOW</p>
               {activeDemo === 'authentic' && <div className="absolute inset-0 shimmer rounded-xl" />}
             </button>
 
@@ -369,7 +553,7 @@ export default function App() {
                 <div className="w-9 h-9 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400 text-lg">⚡</div>
                 <span className="font-bold text-red-300 text-sm">AI Cloned Voice</span>
               </div>
-              <p className="text-[11px] text-slate-500">Deepfake / TTS clone — critical threat</p>
+              <p className="text-[11px] text-slate-500">91% spoof · CRITICAL · BLOCK CALL</p>
               {activeDemo === 'cloned' && <div className="absolute inset-0 shimmer rounded-xl" />}
             </button>
 
@@ -384,7 +568,7 @@ export default function App() {
                 <div className="w-9 h-9 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 text-lg">👤</div>
                 <span className="font-bold text-amber-300 text-sm">Impersonation</span>
               </div>
-              <p className="text-[11px] text-slate-500">Human mimicking another — suspicious</p>
+              <p className="text-[11px] text-slate-500">62% spoof · CRITICAL · BLOCK CALL</p>
               {activeDemo === 'impersonation' && <div className="absolute inset-0 shimmer rounded-xl" />}
             </button>
           </div>
@@ -398,64 +582,22 @@ export default function App() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
-              <span className="text-vs-accent-light font-semibold text-sm">Running analysis…</span>
+              <span className={`font-semibold text-sm ${analyzingMode === 'live' ? 'text-cyan-400' : 'text-amber-400'}`}>
+                {analyzingMode === 'live' ? 'Analyzing real audio…' : 'Running demo simulation…'}
+              </span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-2">Prototype Demo Engine — simulating processing delay</p>
+            <p className="text-[11px] text-slate-500 mt-2">
+              {analyzingMode === 'live'
+                ? 'Processing actual audio signal with Web Audio API'
+                : 'Loading deterministic demo fixtures'
+              }
+            </p>
           </section>
         )}
 
         {/* ── Results ── */}
-        {result && (
-          <section className="fade-in-up">
-            {/* Top Summary */}
-            <div className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-vs-glow-cyan pulse-dot" />
-                    Analysis Result
-                  </h2>
-                  <p className="text-lg font-bold text-white">{result.label}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Processed in {result.analysisTime} · Confidence: {result.confidence}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <StatusBadge status={result.status} />
-                  <DecisionBadge decision={result.decision} />
-                </div>
-              </div>
-
-              {/* Gauges */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="bg-vs-darker/40 rounded-xl p-5 flex justify-center border border-vs-border/30">
-                  <CircularGauge
-                    value={result.speakerMatch}
-                    label="Speaker Match"
-                    color="#10b981"
-                  />
-                </div>
-                <div className="bg-vs-darker/40 rounded-xl p-5 flex justify-center border border-vs-border/30">
-                  <CircularGauge
-                    value={result.spoofProbability}
-                    label="Spoof Probability"
-                    color={result.spoofProbability > 70 ? '#ef4444' : result.spoofProbability > 40 ? '#f59e0b' : '#10b981'}
-                  />
-                </div>
-                <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 gap-4">
-                  <RiskBar score={result.riskScore} />
-                </div>
-              </div>
-            </div>
-
-            {/* Demo disclaimer */}
-            <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-center">
-              <p className="text-[11px] text-amber-400/80 font-medium">
-                ⚠ PROTOTYPE DEMO ENGINE — These values are hard-coded fixtures for demonstration purposes only. They do not represent real ML predictions.
-              </p>
-            </div>
-          </section>
-        )}
+        {result && result.mode === 'live' && <LiveResultCard result={result} />}
+        {result && result.mode === 'demo' && <DemoResultCard result={result} />}
 
         {/* ── Footer ── */}
         <footer className="text-center mt-10 pb-6">
