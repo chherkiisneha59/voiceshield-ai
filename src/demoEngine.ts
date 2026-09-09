@@ -96,7 +96,8 @@ export type AnalysisResult = DemoResult | LiveResult
  */
 export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
   const t0 = performance.now()
-  const API_URL = window.location.origin.includes('5173') ? '/api/analyze' : 'http://127.0.0.1:8000/api/analyze'
+  const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  const API_URL = isLocalHost ? '/api/analyze' : 'http://127.0.0.1:8000/api/analyze'
 
   const formData = new FormData()
   const filename = blob.type.includes('webm') ? 'audio.webm' : blob.type.includes('wav') ? 'audio.wav' : 'audio.mp3'
@@ -140,8 +141,8 @@ export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
   } catch (error: any) {
     console.error('FastAPI Backend connection failed:', error)
     throw new Error(
-      error.message?.includes('Failed to fetch')
-        ? 'Python ML Backend is offline. Please run "python backend/main.py" on port 8000.'
+      error.message?.includes('Failed to fetch') || error.message?.includes('404')
+        ? 'Python ML Backend is offline. Please run "python backend/main.py" locally on port 8000 for real ML inference.'
         : error.message || 'Error connecting to ML backend.'
     )
   }
