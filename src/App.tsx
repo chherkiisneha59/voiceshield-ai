@@ -13,7 +13,6 @@ import {
   type Decision,
 } from './demoEngine'
 
-/* ─── Status Badge ─── */
 function StatusBadge({ status }: { status: Status }) {
   const cfg: Record<Status, { bg: string; text: string; dot: string }> = {
     SAFE:       { bg: 'bg-emerald-500/10 border-emerald-500/30', text: 'text-emerald-400', dot: 'bg-emerald-400' },
@@ -29,7 +28,6 @@ function StatusBadge({ status }: { status: Status }) {
   )
 }
 
-/* ─── Decision Badge ─── */
 function DecisionBadge({ decision }: { decision: Decision }) {
   const cfg: Record<Decision, { bg: string; text: string; icon: string }> = {
     ALLOW:  { bg: 'bg-emerald-500/20 border-emerald-500/30', text: 'text-emerald-300', icon: '✓' },
@@ -45,7 +43,6 @@ function DecisionBadge({ decision }: { decision: Decision }) {
   )
 }
 
-/* ─── Risk Bar ─── */
 function RiskBar({ score }: { score: number }) {
   const color =
     score < 30 ? 'from-emerald-500 to-emerald-400'
@@ -67,7 +64,6 @@ function RiskBar({ score }: { score: number }) {
   )
 }
 
-/* ─── Mode Badge ─── */
 function ModeBadge({ mode }: { mode: 'live' | 'demo' }) {
   if (mode === 'live') {
     return (
@@ -85,12 +81,10 @@ function ModeBadge({ mode }: { mode: 'live' | 'demo' }) {
   )
 }
 
-/* ─── Live Real Result Display ─── */
 function LiveResultCard({ result }: { result: LiveResult }) {
   return (
     <section className="fade-in-up">
       <div className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
-        {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -111,9 +105,7 @@ function LiveResultCard({ result }: { result: LiveResult }) {
           </div>
         </div>
 
-        {/* Primary Gauges */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-          {/* Spoof Detector */}
           <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 text-center">
             <CircularGauge
               value={result.spoofProbability}
@@ -127,7 +119,6 @@ function LiveResultCard({ result }: { result: LiveResult }) {
             </span>
           </div>
 
-          {/* Speaker Verification */}
           <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 text-center">
             <CircularGauge
               value={result.speakerMatch}
@@ -139,7 +130,6 @@ function LiveResultCard({ result }: { result: LiveResult }) {
             </span>
           </div>
 
-          {/* Language & Speech Analysis */}
           <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 text-center">
             <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl font-bold mb-2">
               🌐
@@ -154,7 +144,6 @@ function LiveResultCard({ result }: { result: LiveResult }) {
           </div>
         </div>
 
-        {/* Audio quality & Risk Bar */}
         <div className="bg-vs-darker/40 rounded-xl p-5 border border-vs-border/30 space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-center border-b border-vs-border/20 pb-4">
             <div>
@@ -177,7 +166,6 @@ function LiveResultCard({ result }: { result: LiveResult }) {
   )
 }
 
-/* ─── Demo Result Display ─── */
 function DemoResultCard({ result }: { result: DemoResult }) {
   return (
     <section className="fade-in-up">
@@ -202,7 +190,6 @@ function DemoResultCard({ result }: { result: DemoResult }) {
           </div>
         </div>
 
-        {/* Gauges */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-vs-darker/40 rounded-xl p-5 flex justify-center border border-vs-border/30">
             <CircularGauge
@@ -224,7 +211,6 @@ function DemoResultCard({ result }: { result: DemoResult }) {
         </div>
       </div>
 
-      {/* Demo scenario footer */}
       <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-center">
         <p className="text-[11px] text-amber-400/80 font-medium">
           Scenario Analysis Completed
@@ -234,9 +220,6 @@ function DemoResultCard({ result }: { result: DemoResult }) {
   )
 }
 
-/* ─══════════════════════════════════════════════════════════─
-   MAIN APP
-   ─══════════════════════════════════════════════════════════─ */
 export default function App() {
   const [isRecording, setIsRecording] = useState(false)
   const [hasAudio, setHasAudio] = useState(false)
@@ -255,7 +238,6 @@ export default function App() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  /* ── Microphone Recording ── */
   const startRecording = async () => {
     try {
       setErrorMessage(null)
@@ -303,7 +285,6 @@ export default function App() {
     }
   }
 
-  /* ── Upload Audio File ── */
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null)
     setEnrollMessage(null)
@@ -315,7 +296,6 @@ export default function App() {
     }
   }
 
-  /* ── Analyze LIVE audio via PyTorch ML Backend ── */
   const analyzeVoice = useCallback(async () => {
     const blob = audioBlobRef.current
     if (!blob) return
@@ -337,7 +317,6 @@ export default function App() {
     }
   }, [])
 
-  /* ── Register Speaker Voice Profile ── */
   const registerSpeaker = useCallback(async () => {
     const blob = audioBlobRef.current
     if (!blob) return
@@ -356,7 +335,6 @@ export default function App() {
     }
   }, [])
 
-  /* ── Run DEMO scenario ── */
   const runDemo = useCallback(async (scenario: DemoScenario) => {
     setAnalyzing(true)
     setAnalyzingMode('demo')
@@ -378,7 +356,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-vs-dark text-slate-100 font-sans selection:bg-vs-accent selection:text-white">
-      {/* ── Background decoration ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-1/3 -right-40 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
@@ -386,7 +363,6 @@ export default function App() {
       </div>
 
       <div className="relative max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* ── Header ── */}
         <header className="flex flex-col sm:flex-row items-center justify-between pb-6 mb-8 border-b border-vs-border gap-4">
           <div className="flex items-center gap-3 text-center sm:text-left">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20">
@@ -412,7 +388,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* Error notification banner */}
         {errorMessage && (
           <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-medium flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -423,7 +398,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Enrollment notification banner */}
         {enrollMessage && (
           <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -434,7 +408,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ── Audio Capture Section ── */}
         <section className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
@@ -448,7 +421,6 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            {/* Microphone Record Button */}
             <button
               id="btn-record-voice"
               onClick={isRecording ? stopRecording : startRecording}
@@ -463,7 +435,6 @@ export default function App() {
               <span>{isRecording ? `Recording... (${formatTime(recordingTime)}) — Click to Stop` : 'Record Voice'}</span>
             </button>
 
-            {/* Upload Audio Button */}
             <div>
               <input
                 ref={fileInputRef}
@@ -485,12 +456,10 @@ export default function App() {
             </div>
           </div>
 
-          {/* Animated Waveform */}
           <div className="mb-6">
             <AudioWaveform isRecording={isRecording} hasAudio={hasAudio} />
           </div>
 
-          {/* Analyze & Enroll Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <button
               id="btn-analyze"
@@ -519,7 +488,6 @@ export default function App() {
           )}
         </section>
 
-        {/* ── Demo Scenarios ── */}
         <section className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
@@ -533,7 +501,6 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Authentic */}
             <button
               id="btn-demo-authentic"
               onClick={() => runDemo('authentic')}
@@ -548,7 +515,6 @@ export default function App() {
               {activeDemo === 'authentic' && <div className="absolute inset-0 shimmer rounded-xl" />}
             </button>
 
-            {/* AI Cloned */}
             <button
               id="btn-demo-cloned"
               onClick={() => runDemo('cloned')}
@@ -563,7 +529,6 @@ export default function App() {
               {activeDemo === 'cloned' && <div className="absolute inset-0 shimmer rounded-xl" />}
             </button>
 
-            {/* Impersonation */}
             <button
               id="btn-demo-impersonation"
               onClick={() => runDemo('impersonation')}
@@ -580,7 +545,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Analyzing Spinner ── */}
         {analyzing && !result && (
           <section className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-10 mb-6 text-center">
             <div className="inline-flex items-center gap-3">
@@ -601,11 +565,9 @@ export default function App() {
           </section>
         )}
 
-        {/* ── Results ── */}
         {result && result.mode === 'live' && <LiveResultCard result={result} />}
         {result && result.mode === 'demo' && <DemoResultCard result={result} />}
 
-        {/* ── Footer ── */}
         <footer className="text-center mt-10 pb-6">
           <p className="text-xs text-slate-500">
             VoiceShield AI Security System · Audio Deepfake Detector & Speaker Verification Engine

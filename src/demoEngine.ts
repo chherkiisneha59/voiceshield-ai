@@ -1,16 +1,6 @@
-/**
- * ╔══════════════════════════════════════════════════════════╗
- * ║  VoiceShield AI Engine (Client-Side & Web Audio ML)    ║
- * ║  ──────────────────────────────────────────────────────  ║
- * ║  Standalone Frontend Engine for Vercel Deployment        ║
- * ║  Supports Real Web Audio Analysis + Local ML Fallback    ║
- * ╚══════════════════════════════════════════════════════════╝
- */
-
 export type Status = 'SAFE' | 'SUSPICIOUS' | 'CRITICAL'
 export type Decision = 'ALLOW' | 'VERIFY' | 'BLOCK'
 
-/* ─── DEMO mode types (hardcoded fixtures) ─── */
 export interface DemoResult {
   mode: 'demo'
   speakerMatch: number
@@ -67,22 +57,21 @@ export function runDemoAnalysis(
   })
 }
 
-/* ─── REAL / LIVE Result ─── */
 export interface LiveResult {
   mode: 'live'
   modelArchitecture: string
-  spoofProbability: number      // AASIST Pretrained Model / Client Audio Model
-  prediction: string            // "REAL / BONAFIDE" vs "SPOOF / FAKE"
+  spoofProbability: number
+  prediction: string
   isSpoof: boolean
-  speakerMatch: number          // ECAPA-TDNN Speaker Verifier
+  speakerMatch: number
   speakerRegistered: boolean
-  detectedLanguage: string      // Indic Speech Analyzer
+  detectedLanguage: string
   languageConfidence: number
   pitchMeanHz: number
   speechTempoBpm: number
-  riskScore: number             // 0-100
-  status: Status                // SAFE / SUSPICIOUS / CRITICAL
-  decision: Decision            // ALLOW / VERIFY / BLOCK
+  riskScore: number
+  status: Status
+  decision: Decision
   label: string
   duration: number
   voiceActivity: number
@@ -92,9 +81,6 @@ export interface LiveResult {
 
 export type AnalysisResult = DemoResult | LiveResult
 
-/**
- * Extracts acoustic features directly from audio blob using browser Web Audio API
- */
 export async function extractAudioFeatures(blob: Blob) {
   try {
     const arrayBuffer = await blob.arrayBuffer()
@@ -107,7 +93,6 @@ export async function extractAudioFeatures(blob: Blob) {
     const sampleRate = audioBuffer.sampleRate
     const len = rawData.length
 
-    // Compute checksum/hash of audio samples for a unique audio fingerprint
     let audioChecksum = 0
     const step = Math.max(1, Math.floor(len / 800))
     for (let i = 0; i < len; i += step) {
@@ -116,7 +101,7 @@ export async function extractAudioFeatures(blob: Blob) {
 
     let totalEnergy = 0
     let totalZeroCrossings = 0
-    const frameSize = Math.max(1, Math.floor(sampleRate * 0.03)) // 30ms frame
+    const frameSize = Math.max(1, Math.floor(sampleRate * 0.03))
     const totalFrames = Math.floor(len / frameSize)
 
     const framePitches: number[] = []
@@ -144,7 +129,6 @@ export async function extractAudioFeatures(blob: Blob) {
 
       if (frameRms > 0.005 && frameZcr > 2) {
         activeFrames++
-        // Pitch estimate from zero crossing rate of active frame
         const pitch = Math.round((frameZcr / (frameSize / sampleRate)) / 2)
         if (pitch >= 75 && pitch <= 380) {
           framePitches.push(pitch)
@@ -155,7 +139,6 @@ export async function extractAudioFeatures(blob: Blob) {
     const rms = Math.sqrt(totalEnergy / Math.max(1, len))
     const vadActivity = Math.min(98, Math.max(35, Math.round((activeFrames / Math.max(1, totalFrames)) * 100)))
 
-    // Mean Pitch calculation
     let estimatedPitch = 160
     if (framePitches.length > 0) {
       const sumPitch = framePitches.reduce((a, b) => a + b, 0)
@@ -164,7 +147,6 @@ export async function extractAudioFeatures(blob: Blob) {
       estimatedPitch = Math.round(110 + (audioChecksum % 135))
     }
 
-    // Pitch Variance
     let pitchVariance = 14
     if (framePitches.length > 2) {
       const mean = estimatedPitch
@@ -172,7 +154,6 @@ export async function extractAudioFeatures(blob: Blob) {
       pitchVariance = Math.sqrt(variance)
     }
 
-    // High Frequency Ratio
     let highFreqEnergy = 0
     for (let i = 1; i < len; i++) {
       const diff = rawData[i] - rawData[i - 1]
@@ -180,7 +161,6 @@ export async function extractAudioFeatures(blob: Blob) {
     }
     const highFreqRatio = highFreqEnergy / Math.max(1e-6, totalEnergy)
 
-    // Dynamic Tempo
     let energyPeaks = 0
     const avgFrameEnergy = totalEnergy / Math.max(1, totalFrames)
     for (let f = 1; f < totalFrames - 1; f++) {
@@ -208,7 +188,7 @@ export async function extractAudioFeatures(blob: Blob) {
       audioChecksum: Math.round(audioChecksum),
     }
   } catch (err) {
-    console.warn('Web Audio API decoding fallback:', err)
+    console.warn('Audio decoding fallback:', err)
     return {
       duration: 3.0,
       vadActivity: 82,
@@ -226,9 +206,6 @@ export async function extractAudioFeatures(blob: Blob) {
 
 const STORAGE_KEY = 'voiceshield_enrolled_speaker'
 
-/**
- * Enrolls speaker voice profile into localStorage for client-side speaker verification
- */
 export async function registerClientSpeaker(blob: Blob): Promise<{ success: boolean; pitchHz: number }> {
   const features = await extractAudioFeatures(blob)
   const profile = {
@@ -242,9 +219,6 @@ export async function registerClientSpeaker(blob: Blob): Promise<{ success: bool
   return { success: true, pitchHz: features.pitchHz }
 }
 
-/**
- * Check if a speaker profile is enrolled locally
- */
 export function getEnrolledSpeakerInfo(): { enrolled: boolean; enrolledAt?: string } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -258,13 +232,9 @@ export function getEnrolledSpeakerInfo(): { enrolled: boolean; enrolledAt?: stri
   return { enrolled: false }
 }
 
-/**
- * Analyzes audio dynamically via Web Audio API with realistic content-derived metrics
- */
 export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
   const t0 = performance.now()
 
-  // 1. Try real Python ML backend if running locally
   const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   if (isLocalHost) {
     try {
@@ -288,7 +258,7 @@ export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
 
         return {
           mode: 'live',
-          modelArchitecture: data.model_architecture || 'AASIST + ECAPA-TDNN + Indic Engine',
+          modelArchitecture: data.model_architecture || 'VoiceShield Security Model',
           spoofProbability: data.spoof_probability_pct ?? 5.0,
           prediction: data.prediction || 'REAL / BONAFIDE',
           isSpoof: !!data.is_spoof,
@@ -309,19 +279,16 @@ export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
         }
       }
     } catch (e) {
-      // Backend unavailable; fall through to dynamic Web Audio Engine
+      // Backend fallback
     }
   }
 
-  // 2. Dynamic Web Audio Acoustic Analysis Engine
   const features = await extractAudioFeatures(blob)
 
-  // Compute a unique acoustic seed derived from the exact audio waveform samples and size
   const acousticSeed = Math.abs(
     Math.round(features.audioChecksum * 31 + features.pitchHz * 17 + features.zeroCrossings * 7 + blob.size * 13)
   )
 
-  // Speaker verification check against enrolled profile
   const enrolledInfo = getEnrolledSpeakerInfo()
   let speakerMatch = 88.5
   let speakerRegistered = enrolledInfo.enrolled
@@ -339,22 +306,17 @@ export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
       speakerMatch = 84.0
     }
   } else {
-    // Dynamic similarity score between 40% and 97% for different audio files
     const matchBase = 40.0 + (acousticSeed % 57)
     speakerMatch = Number((matchBase + (features.pitchHz % 5)).toFixed(1))
   }
 
-  // Dynamic Spoof & Risk Score calculation across full range (3% to 96%)
   let calculatedSpoof = 0
 
   if (features.pitchVariance < 4.0 && features.vadActivity > 55) {
-    // Robotic pitch / synthetic voice artifact
     calculatedSpoof = 76.0 + (acousticSeed % 20)
   } else if (features.highFreqRatio > 0.40) {
-    // High frequency vocoder / synthetic artifact
     calculatedSpoof = 58.0 + (acousticSeed % 30)
   } else {
-    // Acoustic variation derived directly from the audio file signature
     const baseSpoof = (acousticSeed % 92) + 3
     calculatedSpoof = baseSpoof
   }
@@ -408,4 +370,3 @@ export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
     analysisTime: `${(analysisMs / 1000).toFixed(2)}s`,
   }
 }
-
