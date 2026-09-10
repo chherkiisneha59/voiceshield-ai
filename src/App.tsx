@@ -67,13 +67,13 @@ function RiskBar({ score }: { score: number }) {
   )
 }
 
-/* ─── Mode Badge (REAL ML INFERENCE vs DEMO SIMULATION) ─── */
+/* ─── Mode Badge ─── */
 function ModeBadge({ mode }: { mode: 'live' | 'demo' }) {
   if (mode === 'live') {
     return (
       <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30">
         <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-dot" />
-        <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest">Real PyTorch ML Models</span>
+        <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest">Real-Time Analysis</span>
       </span>
     )
   }
@@ -85,7 +85,7 @@ function ModeBadge({ mode }: { mode: 'live' | 'demo' }) {
   )
 }
 
-/* ─── Live Real ML Result Display ─── */
+/* ─── Live Real Result Display ─── */
 function LiveResultCard({ result }: { result: LiveResult }) {
   return (
     <section className="fade-in-up">
@@ -96,7 +96,7 @@ function LiveResultCard({ result }: { result: LiveResult }) {
             <div className="flex items-center gap-3 mb-1">
               <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-dot" />
-                Real ML Inference Analysis
+                Voice Analysis Results
               </h2>
               <ModeBadge mode="live" />
             </div>
@@ -111,13 +111,13 @@ function LiveResultCard({ result }: { result: LiveResult }) {
           </div>
         </div>
 
-        {/* Primary ML Model Gauges */}
+        {/* Primary Gauges */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-          {/* AASIST Spoof Detector */}
+          {/* Spoof Detector */}
           <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 text-center">
             <CircularGauge
               value={result.spoofProbability}
-              label="AASIST Spoof Prob"
+              label="Spoof Probability"
               color={result.spoofProbability > 50 ? '#ef4444' : result.spoofProbability > 30 ? '#f59e0b' : '#10b981'}
             />
             <span className={`mt-2 text-xs font-bold px-3 py-1 rounded-full ${
@@ -127,26 +127,26 @@ function LiveResultCard({ result }: { result: LiveResult }) {
             </span>
           </div>
 
-          {/* ECAPA-TDNN Speaker Verification */}
+          {/* Speaker Verification */}
           <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 text-center">
             <CircularGauge
               value={result.speakerMatch}
-              label="ECAPA Speaker Match"
+              label="Speaker Match"
               color="#10b981"
             />
             <span className="mt-2 text-[11px] text-slate-400">
-              {result.speakerRegistered ? '✓ Enrolled Voice Profile' : 'Baseline Speaker Embedding'}
+              {result.speakerRegistered ? '✓ Enrolled Voice Profile' : 'Baseline Speaker Profile'}
             </span>
           </div>
 
-          {/* Indic Speech & Language Model */}
+          {/* Language & Speech Analysis */}
           <div className="bg-vs-darker/40 rounded-xl p-5 flex flex-col items-center justify-center border border-vs-border/30 text-center">
             <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl font-bold mb-2">
               🌐
             </div>
             <p className="text-xl font-bold text-white">{result.detectedLanguage}</p>
             <p className="text-xs text-cyan-400/90 font-medium mt-0.5">
-              Indic Speech Analysis ({result.languageConfidence}% conf)
+              Speech Analysis ({result.languageConfidence}% conf)
             </p>
             <p className="text-[10px] text-slate-500 mt-1">
               Pitch: {result.pitchMeanHz} Hz · Tempo: {result.speechTempoBpm} BPM
@@ -172,13 +172,6 @@ function LiveResultCard({ result }: { result: LiveResult }) {
           </div>
           <RiskBar score={result.riskScore} />
         </div>
-      </div>
-
-      {/* Model verification footer */}
-      <div className="bg-cyan-500/5 border border-cyan-500/15 rounded-xl p-4 text-center">
-        <p className="text-[11px] text-cyan-400/80 font-medium">
-          🧠 REAL ML PREDICTIONS — AASIST (Audio Deepfake Detection) + ECAPA-TDNN (Speaker Verification) + Indic Speech Analyzer running live in PyTorch backend.
-        </p>
       </div>
     </section>
   )
@@ -410,12 +403,12 @@ export default function App() {
               <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
                 VoiceShield <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">AI</span>
               </h1>
-              <p className="text-xs text-slate-400 font-medium">Pretrained ML Audio Security: AASIST · ECAPA-TDNN · Indic Speech</p>
+              <p className="text-xs text-slate-400 font-medium">AI Voice Deepfake Detection & Speaker Verification Security</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot" />
-            <span className="text-xs font-semibold text-slate-300">Web Audio AI Engine Active</span>
+            <span className="text-xs font-semibold text-slate-300">System Active</span>
           </div>
         </header>
 
@@ -505,7 +498,7 @@ export default function App() {
               disabled={!hasAudio || analyzing || isRecording}
               className="flex-1 w-full py-4 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-vs-dark font-black text-base uppercase tracking-wider hover:opacity-90 transition-all duration-300 shadow-lg shadow-cyan-500/25 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              Analyze Voice (Real ML Pipeline)
+              Analyze Voice
             </button>
 
             <button
@@ -521,7 +514,7 @@ export default function App() {
           {hasAudio && !analyzing && !result && (
             <p className="mt-3 text-xs text-emerald-400/70 flex items-center gap-1">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
-              Audio loaded — Click "Analyze Voice" to trigger real PyTorch ML models
+              Audio loaded — Click "Analyze Voice" to begin analysis
             </p>
           )}
         </section>
@@ -599,12 +592,12 @@ export default function App() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
               <span className={`font-semibold text-sm ${analyzingMode === 'live' ? 'text-cyan-400' : 'text-amber-400'}`}>
-                {analyzingMode === 'live' ? 'Executing PyTorch AASIST + ECAPA-TDNN Models…' : 'Running demo simulation…'}
+                {analyzingMode === 'live' ? 'Analyzing Voice & Audio Features…' : 'Running demo simulation…'}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mt-2">
               {analyzingMode === 'live'
-                ? 'Processing 16kHz audio waveform through deep learning inference engine'
+                ? 'Processing audio waveform and spectral features'
                 : 'Loading deterministic demo fixtures'
               }
             </p>
@@ -618,7 +611,7 @@ export default function App() {
         {/* ── Footer ── */}
         <footer className="text-center mt-10 pb-6">
           <p className="text-xs text-slate-500">
-            VoiceShield AI Security System · AASIST Deepfake Detector · ECAPA-TDNN Speaker Verifier · Indic Speech Analyzer
+            VoiceShield AI Security System · Audio Deepfake Detector & Speaker Verification Engine
           </p>
         </footer>
       </div>

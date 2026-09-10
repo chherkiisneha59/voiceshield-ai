@@ -297,7 +297,7 @@ export async function analyzeLiveAudio(blob: Blob): Promise<LiveResult> {
 
   return {
     mode: 'live',
-    modelArchitecture: 'Web Audio AI Pipeline (AASIST & ECAPA Engine)',
+    modelArchitecture: 'VoiceShield Security Model',
     spoofProbability,
     prediction: isSpoof ? 'SPOOF / FAKE' : 'REAL / BONAFIDE',
     isSpoof,
