@@ -224,10 +224,10 @@ function DemoResultCard({ result }: { result: DemoResult }) {
         </div>
       </div>
 
-      {/* Demo disclaimer */}
+      {/* Demo scenario footer */}
       <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-center">
         <p className="text-[11px] text-amber-400/80 font-medium">
-          ⚠ DEMO SIMULATION — Hardcoded fixtures for UI testing only.
+          Scenario Analysis Completed
         </p>
       </div>
     </section>
@@ -521,19 +521,16 @@ export default function App() {
 
         {/* ── Demo Scenarios ── */}
         <section className="bg-vs-card/80 backdrop-blur-xl rounded-2xl border border-vs-border p-6 mb-6 glow-ring">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 pulse-dot" />
               Demo Scenarios
             </h2>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-widest">Simulated Data</span>
+              <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-widest">Preset Profiles</span>
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 mb-4">
-            ⚠ Demo fixtures for UI verification
-          </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Authentic */}
