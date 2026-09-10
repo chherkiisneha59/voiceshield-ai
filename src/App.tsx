@@ -4,6 +4,7 @@ import AudioWaveform from './components/AudioWaveform'
 import {
   runDemoAnalysis,
   analyzeLiveAudio,
+  registerClientSpeaker,
   type AnalysisResult,
   type LiveResult,
   type DemoResult,
@@ -352,21 +353,9 @@ export default function App() {
     setEnrollMessage(null)
     setErrorMessage(null)
 
-    const formData = new FormData()
-    formData.append('file', blob, 'enrolled.webm')
-
-    const endpoint = window.location.origin.includes('5173') ? '/api/register_speaker' : 'http://127.0.0.1:8000/api/register_speaker'
     try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-      })
-      if (!res.ok) {
-        const json = await res.json()
-        throw new Error(json.detail || 'Enrollment failed')
-      }
-      const data = await res.json()
-      setEnrollMessage('✓ Voice Profile Successfully Enrolled for Speaker Verification!')
+      const res = await registerClientSpeaker(blob)
+      setEnrollMessage(`✓ Voice Profile Successfully Enrolled for Speaker Verification! (Pitch: ${res.pitchHz} Hz)`)
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to register speaker profile.')
     } finally {
@@ -426,7 +415,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot" />
-            <span className="text-xs font-semibold text-slate-300">PyTorch ML Backend Ready</span>
+            <span className="text-xs font-semibold text-slate-300">Web Audio AI Engine Active</span>
           </div>
         </header>
 
